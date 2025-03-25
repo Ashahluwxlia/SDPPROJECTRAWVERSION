@@ -5500,11 +5500,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/ash/Documents/GitHub/TaskManagementApp/Backend/Backend.csproj",
+      "projectUniqueName": "/Users/ash/Documents/GitHub/SDPPROJECTRAWVERSION/TaskManagementApp/Backend/Backend.csproj",
       "projectName": "Backend",
-      "projectPath": "/Users/ash/Documents/GitHub/TaskManagementApp/Backend/Backend.csproj",
+      "projectPath": "/Users/ash/Documents/GitHub/SDPPROJECTRAWVERSION/TaskManagementApp/Backend/Backend.csproj",
       "packagesPath": "/Users/ash/.nuget/packages/",
-      "outputPath": "/Users/ash/Documents/GitHub/TaskManagementApp/Backend/obj/",
+      "outputPath": "/Users/ash/Documents/GitHub/SDPPROJECTRAWVERSION/TaskManagementApp/Backend/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/ash/.nuget/NuGet/NuGet.Config"
