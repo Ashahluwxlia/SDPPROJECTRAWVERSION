@@ -1,84 +1,66 @@
 import axios from 'axios';
-import api from './api';  // Add this import
+import type { User, UserRole } from '../types';
 
-const API_URL = import.meta.env.REACT_APP_API_URL || 'http://localhost:5241'; // Update port to match backend
-
-export interface User {
-  id: string;
-  fullName: string;  // Ensure this matches the AuthContextTypes
-  email: string;
-  role: 'admin' | 'manager' | 'user';
-  createdAt: string;
-  updatedAt: string;
+interface AuthResponse {
+  user: User;
+  token: string;
 }
 
-export interface LoginCredentials {
+interface RegisterData {
+  fullName: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+interface LoginData {
   email: string;
   password: string;
 }
 
-export interface RegisterData {
-  fullName: string;  // Changed from name to fullName
-  email: string;
-  password: string;
-}
-
-// Register a new user
-export const registerUser = async (userData: RegisterData): Promise<User> => {
-  const response = await api.post('/auth/register', userData);
-  return response.data;  // Ensure response includes fullName
+export const getCurrentUser = async (): Promise<User> => {
+  const response = await axios.get('/api/users/me');
+  return response.data;
 };
 
-// Remove the duplicate loginUser function
-export const loginUser = async (credentials: LoginCredentials): Promise<User> => {
-  try {
-    const response = await api.post('/auth/login', credentials);
-    const userData = response.data;
-    localStorage.setItem('user', JSON.stringify(userData));
-    return userData;
-  } catch (error) {
-    console.error('Login error:', error);
-    throw error;
-  }
+export const loginUser = async (data: LoginData): Promise<AuthResponse> => {
+  const response = await axios.post('/api/auth/login', data);
+  return response.data;
 };
 
-// Update logoutUser function
+export const registerUser = async (data: RegisterData): Promise<AuthResponse> => {
+  const response = await axios.post('/api/auth/register', data);
+  return response.data;
+};
+
 export const logoutUser = async (): Promise<void> => {
-  await api.post('/auth/logout');
-  localStorage.removeItem('user');
+  await axios.post('/api/auth/logout');
 };
 
-// Update getCurrentUser function
-export const getCurrentUser = async (): Promise<User | null> => {
-  const user = localStorage.getItem('user');
-  if (!user) return null;
-  return JSON.parse(user);
-};
-
-// Update user profile
-export const updateUserProfile = async (userId: string, userData: Partial<User>): Promise<User> => {
-  const response = await axios.put(`${API_URL}/users/${userId}`, userData, {
-    withCredentials: true
+export const updateUserProfile = async (formData: FormData): Promise<User> => {
+  const response = await axios.put('/api/users/profile', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
   });
-  return response.data.user;
+  return response.data;
 };
 
-// Change password
-export const changePassword = async (userId: string, currentPassword: string, newPassword: string): Promise<void> => {
-  await axios.put(`${API_URL}/users/${userId}/password`, {
+export const changePassword = async (
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<void> => {
+  await axios.put(`/api/users/${userId}/password`, {
     currentPassword,
     newPassword
-  }, {
-    withCredentials: true
   });
 };
 
-// Request password reset
-export const requestPasswordReset = async (email: string): Promise<void> => {
-  await axios.post(`${API_URL}/auth/reset-password`, { email });
+export const refreshUserToken = async (): Promise<{ token: string }> => {
+  const response = await axios.post('/api/auth/refresh');
+  return response.data;
 };
 
-// Reset password with token
-export const resetPassword = async (token: string, password: string): Promise<void> => {
-  await axios.post(`${API_URL}/auth/reset-password/${token}`, { password });
+// Add this to your existing authService.ts
+export const resetPassword = async (email: string): Promise<void> => {
+  await axios.post('/api/auth/reset-password', { email });
 };

@@ -1,5 +1,3 @@
-#define 
-
 using Backend.Data;
 using Backend.Models;
 using Microsoft.EntityFrameworkCore;
@@ -77,7 +75,12 @@ app.MapPost("/auth/register", async (User user, ApplicationDbContext context) =>
 
     context.Users.Add(user);
     await context.SaveChangesAsync();
-    return Results.Created($"/users/{user.Id}", user);
+    return Results.Created($"/users/{user.Id}", new {
+    user.Id,
+    user.Email,
+    user.FullName,
+    user.Role
+});
 });
 
 app.MapPost("/auth/login", async (LoginRequest request, ApplicationDbContext context) =>
@@ -98,7 +101,8 @@ app.MapPost("/auth/login", async (LoginRequest request, ApplicationDbContext con
         id = user.Id,
         email = user.Email,
         fullName = user.FullName,
-        token = user.Id.ToString() // Temporary token for development
+        token = user.Id.ToString(), // Temporary token for development
+                role = user.Role
     });
 });
 

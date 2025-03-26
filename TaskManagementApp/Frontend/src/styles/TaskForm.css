@@ -30,114 +30,188 @@
 }
 
 .task-form {
-  display: flex;
-  flex-direction: column;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 1.5rem;
 }
 
 .form-row {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 16px;
-}
-
-.form-row .form-group {
-  flex: 1;
-  margin-bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   font-weight: 500;
+  color: #333;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
+.form-group input[type="text"],
+.form-group input[type="datetime-local"],
+.form-group select,
+.form-group textarea {
   width: 100%;
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--background-color);
-  color: var(--text-color);
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
+.form-group input[type="text"]:focus,
+.form-group input[type="datetime-local"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
   outline: none;
-  border-color: var(--primary-color);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
 .checkbox-group {
+  margin: 1.5rem 0;
+}
+
+.checkbox-label {
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
-.checkbox-group input {
-  width: auto;
-  margin-right: 10px;
+.checkbox-label input[type="checkbox"] {
+  margin-right: 0.5rem;
+  width: 18px;
+  height: 18px;
 }
 
-.checkbox-group label {
-  margin-bottom: 0;
+.checkbox-label span {
+  font-size: 1rem;
+  color: #333;
 }
 
-.form-actions {
+.error {
+  border-color: #dc3545 !important;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.alert-error {
+  background-color: #ffeaea;
+  color: #dc3545;
+  border: 1px solid #ffcdd2;
+}
+
+.alert-success {
+  background-color: #e8f5e9;
+  color: #28a745;
+  border: 1px solid #c8e6c9;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 1rem;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.cancel-btn {
-  background-color: var(--secondary-color);
-  color: white;
-}
-
-.cancel-btn:hover {
-  background-color: #5a6268;
-}
-
-.submit-btn {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.submit-btn:hover {
-  background-color: var(--primary-dark);
-}
-
-.delete-btn {
-  background-color: var(--danger-color);
-  color: white;
-}
-
-.delete-btn:hover {
-  background-color: #c82333;
-}
-
-/* Edit Task specific styles */
-.edit-task-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.task-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.back-btn {
-  background-color: var(--secondary-color);
-  color: white;
+.submit-button:hover:not(:disabled) {
+  background-color: #357abd;
+}
+
+.submit-button:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .task-form {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .task-form {
+    background: #1a1a1a;
+  }
+
+  .form-group label {
+    color: #e0e0e0;
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="datetime-local"],
+  .form-group select,
+  .form-group textarea {
+    background: #2d2d2d;
+    border-color: #404040;
+    color: #e0e0e0;
+  }
+
+  .checkbox-label span {
+    color: #e0e0e0;
+  }
+
+  .alert-error {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #ff6b6b;
+  }
+
+  .alert-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #51cf66;
+  }
 }
 
 .task-tabs {

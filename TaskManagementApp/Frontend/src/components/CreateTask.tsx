@@ -1,27 +1,28 @@
 import { useState } from 'react';
-import { createTask } from '../services/taskservice';
-import { useAuth } from '../hooks/useAuth';
-type TaskPriority = 'low' | 'medium' | 'high';
-type TaskStatus = 'to-do' | 'in-progress' | 'completed';
-type RecurringPattern = 'daily' | 'weekly' | 'biweekly' | 'monthly';
+import { useTask } from '../context/TaskContext';
+import { useAuth } from '../context/AuthContext';
+import { Task } from '../types';
+import LoadingSpinner from './LoadingSpinner';
 import '../styles/TaskForm.css';
 
-interface CreateTaskProps {
-  refreshTasks: () => Promise<void>;
-}
+type TaskFormData = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'attachments'>;
 
-const CreateTask: React.FC<CreateTaskProps> = ({ refreshTasks }) => {
+const CreateTask: React.FC = () => {
+  const { createNewTask } = useTask();
   const { currentUser } = useAuth();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
-  const [formData, setFormData] = useState({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<TaskFormData>({
     title: '',
     description: '',
     dueDate: '',
-    priority: 'medium' as TaskPriority,
-    status: 'to-do' as TaskStatus,
-    tags: '',
-    recurringPattern: 'daily' as RecurringPattern,
+    priority: 'medium',
+    status: 'to-do',
+    tags: [],
+    isRecurring: false,
+    recurringPattern: 'daily',
+    createdBy: '',
     assignedTo: '',
   });
   const [error, setError] = useState('');
@@ -38,7 +39,29 @@ const CreateTask: React.FC<CreateTaskProps> = ({ refreshTasks }) => {
     const { name, checked } = e.target;
     if (name === 'isRecurring') {
       setIsRecurring(checked);
+      setFormData(prev => ({
+        ...prev,
+        isRecurring: checked
+      }));
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      dueDate: '',
+      priority: 'medium',
+      status: 'to-do',
+      tags: [],
+      isRecurring: false,
+      recurringPattern: 'daily',
+      createdBy: '',
+      assignedTo: '',
+    });
+    setIsRecurring(false);
+    setIsFormVisible(false);
+    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,31 +74,24 @@ const CreateTask: React.FC<CreateTaskProps> = ({ refreshTasks }) => {
     }
 
     try {
+      setIsSubmitting(true);
       const taskData = {
         ...formData,
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+        tags: typeof formData.tags === 'string' 
+          ? (formData.tags as string).split(',').map(tag => tag.trim())
+          : formData.tags,
         isRecurring,
         createdBy: currentUser.id,
         assignedTo: formData.assignedTo || currentUser.id,
       };
 
-      await createTask(taskData);
-      await refreshTasks();
-      setFormData({
-        title: '',
-        description: '',
-        dueDate: '',
-        priority: 'medium',
-        status: 'to-do',
-        tags: '',
-        recurringPattern: 'daily',
-        assignedTo: '',
-      });
-      setIsRecurring(false);
-      setIsFormVisible(false);
+      await createNewTask(taskData);
+      resetForm();
     } catch (err) {
       console.error('Error creating task:', err);
       setError('Failed to create task. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -202,12 +218,17 @@ const CreateTask: React.FC<CreateTaskProps> = ({ refreshTasks }) => {
               <button 
                 type="button" 
                 className="cancel-btn"
-                onClick={() => setIsFormVisible(false)}
+                onClick={resetForm}
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
-              <button type="submit" className="submit-btn">
-                Create Task
+              <button 
+                type="submit" 
+                className="submit-btn"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? <LoadingSpinner size="small" /> : 'Create Task'}
               </button>
             </div>
           </form>

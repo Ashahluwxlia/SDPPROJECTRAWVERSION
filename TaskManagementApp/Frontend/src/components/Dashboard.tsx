@@ -1,44 +1,64 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Task } from '../services/taskservice';
-import { useAuth } from '../hooks/useAuth';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useTask } from '../context/TaskContext';
+import { useAuth } from '../context/AuthContext';
+import LoadingSpinner from './LoadingSpinner';
+import TaskCard from '../components/TaskCard';
 import '../styles/Dashboard.css';
+import { User } from '../types/index';
 
-interface DashboardProps {
-  tasks: Task[];
+interface DashboardStats {
+  total: number;
+  completed: number;
+  inProgress: number;
+  overdue: number;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
-  const { currentUser } = useAuth();
-  const [stats, setStats] = useState({
+interface DashboardProps {
+  searchTerm: string;
+  filters: {
+    status: string;
+    priority: string;
+    assignee: string;
+  };
+}
+
+
+const Dashboard: React.FC<DashboardProps> = ({ searchTerm, filters }) => {
+  const { tasks, loading, error } = useTask();
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Remove the duplicate userName declaration and fix type assertion
+  const displayName = currentUser && ((currentUser as unknown as User).name || currentUser.email.split('@')[0]);
+
+  const [stats, setStats] = useState<DashboardStats>({
     total: 0,
     completed: 0,
     inProgress: 0,
     overdue: 0
   });
 
-  useEffect(() => {
-    if (tasks.length > 0) {
-      const now = new Date();
-      
-      const completed = tasks.filter(task => task.status === 'completed').length;
-      const inProgress = tasks.filter(task => task.status === 'in-progress').length;
-      const overdue = tasks.filter(task => {
+  const calculateStats = useMemo(() => {
+    if (!tasks.length) return stats;
+
+    const now = new Date();
+    return {
+      total: tasks.length,
+      completed: tasks.filter(task => task.status === 'completed').length,
+      inProgress: tasks.filter(task => task.status === 'in-progress').length,
+      overdue: tasks.filter(task => {
         if (!task.dueDate || task.status === 'completed') return false;
         return new Date(task.dueDate) < now;
-      }).length;
-
-      setStats({
-        total: tasks.length,
-        completed,
-        inProgress,
-        overdue
-      });
-    }
+      }).length
+    };
   }, [tasks]);
 
-  // Get tasks due today or tomorrow
-  const getUpcomingTasks = () => {
+  useEffect(() => {
+    setStats(calculateStats);
+  }, [calculateStats]);
+
+  const upcomingTasks = useMemo(() => {
     const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -47,39 +67,62 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
       if (!task.dueDate || task.status === 'completed') return false;
       
       const dueDate = new Date(task.dueDate);
-      return (
-        dueDate.getDate() === now.getDate() && 
-        dueDate.getMonth() === now.getMonth() && 
-        dueDate.getFullYear() === now.getFullYear()
-      ) || (
-        dueDate.getDate() === tomorrow.getDate() && 
-        dueDate.getMonth() === tomorrow.getMonth() && 
-        dueDate.getFullYear() === tomorrow.getFullYear()
-      );
+      const isToday = dueDate.toDateString() === now.toDateString();
+      const isTomorrow = dueDate.toDateString() === tomorrow.toDateString();
+      
+      return isToday || isTomorrow;
     });
-  };
+  }, [tasks]);
 
-  // Get high priority tasks
-  const getHighPriorityTasks = () => {
+  const highPriorityTasks = useMemo(() => {
     return tasks.filter(task => 
       task.priority === 'high' && task.status !== 'completed'
+    ).slice(0, 5);
+  }, [tasks]);
+
+ 
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="dashboard-loading">
+        <LoadingSpinner />
+      </div>
     );
-  };
+  }
 
-  const upcomingTasks = getUpcomingTasks();
-  const highPriorityTasks = getHighPriorityTasks();
-
-  // Get user's name for a more personalized greeting
-  const getUserName = () => {
-    if (!currentUser) return 'User';
-    
-    // Use name or email or id depending on what's available in your User type
-    return currentUser.name || currentUser.email || currentUser.username || 'User';
-  };
+  if (error) {
+    return (
+      <div className="dashboard-error">
+        <h2>Error loading dashboard</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container">
-      <h1>Welcome, {getUserName()}!</h1>
+      <header className="dashboard-header">
+        <div className="header-left">
+          <h1>Welcome, {displayName}!</h1>
+        </div>
+        <div className="header-right">
+          <Link to="/tasks/create" className="create-task-btn">
+            Create New Task
+          </Link>
+          <button onClick={handleLogout} className="logout-btn">
+            Sign Out
+          </button>
+        </div>
+      </header>
       
       <div className="dashboard-stats">
         <div className="stat-card">
@@ -94,64 +137,48 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
           <h3>In Progress</h3>
           <div className="stat-number">{stats.inProgress}</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card warning">
           <h3>Overdue</h3>
           <div className="stat-number">{stats.overdue}</div>
         </div>
       </div>
       
-      <div className="dashboard-section">
-        <h2>Upcoming Tasks</h2>
-        <div className="task-list-mini">
-          {upcomingTasks.length > 0 ? (
-            upcomingTasks.map(task => (
-              <div key={task.id} className="task-item-mini">
-                <div className="task-title">{task.title}</div>
-                <div className="task-due">
-                  Due: {new Date(task.dueDate!).toLocaleDateString()}
-                </div>
-                <Link to={`/tasks/${task.id}/edit`} className="view-task-btn">
-                  View
-                </Link>
-              </div>
-            ))
-          ) : (
-            <p>No upcoming tasks for today or tomorrow.</p>
-          )}
-        </div>
-        <Link to="/tasks" className="view-all-link">View all tasks</Link>
-      </div>
-      
-      <div className="dashboard-section">
-        <h2>High Priority Tasks</h2>
-        <div className="task-list-mini">
-          {highPriorityTasks.length > 0 ? (
-            highPriorityTasks.map(task => (
-              <div key={task.id} className="task-item-mini">
-                <div className="task-title">{task.title}</div>
-                {task.dueDate && (
-                  <div className="task-due">
-                    Due: {new Date(task.dueDate).toLocaleDateString()}
-                  </div>
-                )}
-                <Link to={`/tasks/${task.id}/edit`} className="view-task-btn">
-                  View
-                </Link>
-              </div>
-            ))
-          ) : (
-            <p>No high priority tasks.</p>
-          )}
-        </div>
-      </div>
-      
-      <div className="dashboard-actions">
-        <Link to="/tasks" className="dashboard-btn primary">
-          Manage Tasks
-        </Link>
-        <Link to="/tasks/create" className="dashboard-btn">
-          Create New Task
-        </Link>
+      <div className="dashboard-grid">
+        <section className="dashboard-section">
+          <header className="section-header">
+            <h2>Upcoming Tasks</h2>
+            <Link to="/tasks?filter=upcoming" className="view-all-link">
+              View all
+            </Link>
+          </header>
+          <div className="task-list-mini">
+            {upcomingTasks.length > 0 ? (
+              upcomingTasks.map(task => (
+                <TaskCard key={task.id} task={task} compact />
+              ))
+            ) : (
+              <p className="empty-state">No upcoming tasks for today or tomorrow</p>
+            )}
+          </div>
+        </section>
+
+        <section className="dashboard-section">
+          <header className="section-header">
+            <h2>High Priority Tasks</h2>
+            <Link to="/tasks?filter=high-priority" className="view-all-link">
+              View all
+            </Link>
+          </header>
+          <div className="task-list-mini">
+            {highPriorityTasks.length > 0 ? (
+              highPriorityTasks.map(task => (
+                <TaskCard key={task.id} task={task} compact />
+              ))
+            ) : (
+              <p className="empty-state">No high priority tasks</p>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );

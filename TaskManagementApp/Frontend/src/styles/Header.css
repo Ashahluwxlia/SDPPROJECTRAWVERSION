@@ -1,142 +1,155 @@
 .app-header {
-  background-color: var(--light-color);
-  box-shadow: 0 2px 4px var(--shadow-color);
-  padding: 0 20px;
-  height: 60px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1rem 2rem;
+  background: var(--header-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
+  transition: all 0.3s ease;
 }
 
-.header-left, .header-center, .header-right {
+.header-left,
+.header-center,
+.header-right {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   text-decoration: none;
+  color: var(--text-primary);
+}
+
+.logo-img {
+  height: 32px;
+  width: auto;
 }
 
 .search-container {
   position: relative;
-  width: 300px;
+  width: 100%;
+  max-width: 400px;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 12px;
-  padding-right: 40px;
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: 20px;
-  background-color: var(--background-color);
-  color: var(--text-color);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
 }
 
 .search-button {
   position: absolute;
-  right: 5px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--secondary-color);
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 5px;
 }
 
 .theme-toggle {
   background: none;
   border: none;
-  font-size: 18px;
+  color: var(--text-primary);
   cursor: pointer;
-  margin-right: 15px;
-  padding: 5px;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
 }
 
 .user-menu {
   position: relative;
 }
 
-.user-info {
+.user-menu-button {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-primary);
   cursor: pointer;
-  padding: 5px 10px;
+  padding: 0.5rem;
   border-radius: 20px;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
 }
 
-.user-info:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.user-info span {
-  margin-left: 8px;
-  font-weight: 500;
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--avatar-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dropdown-menu {
   position: absolute;
   top: 100%;
   right: 0;
-  width: 200px;
-  background-color: var(--background-color);
-  border-radius: 4px;
-  box-shadow: 0 2px 10px var(--shadow-color);
-  margin-top: 5px;
-  display: none;
-  z-index: 10;
-}
-
-.user-menu:hover .dropdown-menu {
-  display: block;
+  background: var(--dropdown-bg);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  animation: dropdown 0.3s ease;
 }
 
 .dropdown-item {
   display: block;
-  padding: 10px 15px;
-  color: var(--text-color);
+  padding: 0.5rem 1rem;
+  color: var(--text-primary);
   text-decoration: none;
-  transition: background-color 0.2s;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item.active {
+  background: var(--primary-color);
+  color: white;
 }
 
 .dropdown-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  text-decoration: none;
+  background: var(--hover-bg);
 }
 
 .logout-btn {
   width: 100%;
-  text-align: left;
-  background: none;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
   border: none;
-  color: var(--danger-color);
+  border-radius: 4px;
+  background: var(--danger-color);
+  color: white;
   cursor: pointer;
-  padding: 10px 15px;
-  font-size: 14px;
+  transition: all 0.2s ease;
 }
 
 .auth-buttons {
   display: flex;
-  gap: 10px;
+  gap: 1rem;
 }
 
-.btn-login, .btn-register {
-  padding: 6px 12px;
-  border-radius: 4px;
+.btn-login,
+.btn-register {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
   text-decoration: none;
-  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .btn-login {
@@ -145,16 +158,36 @@
 }
 
 .btn-register {
-  background-color: var(--primary-color);
+  background: var(--primary-color);
   color: white;
 }
 
+@keyframes dropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
-  .header-center {
+  .app-header {
+    padding: 1rem;
+  }
+
+  .logo-text {
     display: none;
   }
-  
-  .app-header {
-    padding: 0 15px;
+
+  .header-center {
+    flex: 1;
+    margin: 0 1rem;
+  }
+
+  .user-name {
+    display: none;
   }
 }

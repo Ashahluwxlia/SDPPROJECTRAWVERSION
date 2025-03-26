@@ -1,42 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { resetPassword } from '../services/authService';
+import { useFormValidation } from '../hooks/useFormValidation';
+import { validateEmail } from '../constants/validation';
 import '../styles/Auth.css';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  const { errors, validate, clearErrors } = useFormValidation({
+    email: validateEmail
+  });
+
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setEmail(value);
+    validate('email', value);
+  }, [validate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    clearErrors();
     
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
+    if (!validate('email', email)) {
       return;
     }
     
     setIsLoading(true);
 
     try {
-      // Trim the email to remove any whitespace before sending
-      // The resetPassword function requires both email and password parameters
-      await resetPassword(email.trim(), ''); // Passing an empty string as password or null depending on API requirements
+      await resetPassword(email.trim(), '');
       setIsSubmitted(true);
     } catch (err: unknown) {
-      console.error('Password reset error:', err);
+      let errorMessage = 'Failed to send reset email. Please try again.';
+      
       if (err instanceof Error) {
-        setError(err.message);
+        errorMessage = err.message;
       } else if (typeof err === 'object' && err !== null && 'response' in err) {
         const axiosError = err as { response?: { data?: { message?: string } } };
-        setError(axiosError.response?.data?.message || 'Failed to send reset email. Please try again.');
-      } else {
-        setError('Failed to send reset email. Please try again.');
+        errorMessage = axiosError.response?.data?.message || errorMessage;
       }
+      
+      validate('email', email); // Re-validate to show error
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +65,6 @@ const ForgotPassword: React.FC = () => {
           </div>
         ) : (
           <>
-            {error && <div className="auth-error">{error}</div>}
             <p className="auth-description">
               Enter your email address and we'll send you instructions to reset your password.
             </p>
@@ -70,16 +76,22 @@ const ForgotPassword: React.FC = () => {
                   type="email"
                   id="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
+                  className={errors.email ? 'error' : ''}
+                  placeholder="Enter your email"
                   required
+                  autoFocus
                 />
+                {errors.email && (
+                  <span className="error-message">{errors.email}</span>
+                )}
               </div>
 
               <div className="form-actions">
                 <button 
                   type="submit" 
                   className="submit-btn" 
-                  disabled={isLoading}
+                  disabled={isLoading || !!errors.email}
                 >
                   {isLoading ? 'Sending...' : 'Send Reset Link'}
                 </button>
@@ -87,12 +99,9 @@ const ForgotPassword: React.FC = () => {
             </form>
 
             <div className="auth-links">
-              <p>
-                Remember your password?{' '}
-                <Link to="/login" className="login-link">
-                  Login
-                </Link>
-              </p>
+              <Link to="/login" className="login-link">
+                Remember your password? Login
+              </Link>
             </div>
           </>
         )}
