@@ -3,9 +3,18 @@ import multer from 'multer';
 import { userController } from '../controllers/userController';
 import { validateProfileUpdate, validatePasswordUpdate, validate } from '../middleware/validation';
 import { authenticateUser } from '../middleware/authentication';
+import { Request, Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '../types/express';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+// Helper function to convert controller methods to Express-compatible handlers
+const wrapController = (handler: (req: AuthenticatedRequest, res: Response) => Promise<any>) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    return handler(req as AuthenticatedRequest, res);
+  };
+};
 
 router.put(
   '/profile',
@@ -13,7 +22,7 @@ router.put(
   upload.single('profilePicture'),
   validateProfileUpdate,
   validate,
-  userController.updateProfile
+  wrapController(userController.updateProfile)
 );
 
 router.put(
@@ -21,13 +30,13 @@ router.put(
   authenticateUser,
   validatePasswordUpdate,
   validate,
-  userController.updatePassword
+  wrapController(userController.updatePassword)
 );
 
 router.get(
   '/activity',
   authenticateUser,
-  userController.getActivityHistory
+  wrapController(userController.getActivityHistory)
 );
 
 export default router;

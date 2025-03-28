@@ -447,7 +447,7 @@ const EditTask: React.FC<EditTaskProps> = ({ refreshTasks }) => {
                   task.attachments.map(attachment => (
                     <div key={attachment.id} className="attachment-item">
                       <a href={attachment.url} target="_blank" rel="noopener noreferrer">
-                        {attachment.name}
+                        {attachment.filename} {/* Changed from name to filename */}
                       </a>
                     </div>
                   ))

@@ -1,10 +1,9 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import User from '../models/User';
 import Activity from '../models/Activity';
 import bcrypt from 'bcrypt';
-import { NotFoundError, ValidationError } from '../utils/errors';
-import { asyncHandler } from '../utils/asyncHandler';
+import { AuthenticatedRequest } from '../types/express';
 
 // Auth utility functions
 const validatePassword = async (password: string, hash: string): Promise<boolean> => {
@@ -33,8 +32,12 @@ const s3Client = new S3Client({
 });
 
 export const userController = {
-  async updateProfile(req: Request, res: Response) {
+  async updateProfile(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
       const userId = req.user.id;
       const { name, preferences } = req.body;
       const profilePicture = req.file;
@@ -76,15 +79,20 @@ export const userController = {
       console.error('Profile update error:', error);
       res.status(500).json({ 
         error: 'Failed to update profile',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details: process.env.NODE_ENV === 'development' ? 
+          (error instanceof Error ? error.message : String(error)) : undefined
       });
     }
   },
 
-  async updatePassword(req: Request, res: Response) {
+  async updatePassword(req: AuthenticatedRequest, res: Response) {
     try {
-      const { currentPassword, newPassword } = req.body;
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
       const userId = req.user.id;
+      const { currentPassword, newPassword } = req.body;
 
       const user = await User.findByPk(userId);
       if (!user) {
@@ -111,8 +119,12 @@ export const userController = {
     }
   },
 
-  async getActivityHistory(req: Request, res: Response) {
+  async getActivityHistory(req: AuthenticatedRequest, res: Response) {
     try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
       const userId = req.user.id;
       const activities = await Activity.findAll({
         where: { userId },

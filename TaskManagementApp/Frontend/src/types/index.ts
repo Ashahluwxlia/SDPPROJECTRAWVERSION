@@ -77,9 +77,9 @@ export interface Task {
 
 export interface Comment {
   id: string;
-  content: string;
+  text: string;  // Ensure this matches the taskservice definition
   userId: string;
-  taskId: string;
+  userName?: string;  // Make optional if not required
   createdAt: string;
 }
 

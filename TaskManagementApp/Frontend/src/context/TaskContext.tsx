@@ -53,7 +53,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
           dueDate: taskData.dueDate || new Date().toISOString(),
           priority: taskData.priority || 'medium',
           createdBy: '',
-          assignedTo: ''
+          assignedTo: '',
+          tags: [],
+          isRecurring: false
       });
       await refreshTasks();
     } catch (err) {

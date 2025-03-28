@@ -61,6 +61,6 @@ export const refreshUserToken = async (): Promise<{ token: string }> => {
 };
 
 // Add this to your existing authService.ts
-export const resetPassword = async (email: string): Promise<void> => {
+export const resetPassword = async (email: string, _p0: string): Promise<void> => {
   await axios.post('/api/auth/reset-password', { email });
 };

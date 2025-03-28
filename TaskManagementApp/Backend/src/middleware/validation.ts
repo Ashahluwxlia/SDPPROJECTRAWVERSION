@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { body, validationResult } from 'express-validator';
+import { body, validationResult, Result } from 'express-validator';
+import { ValidationError } from '../utils/errors';
 
 export const validateProfileUpdate = [
   body('name').trim().notEmpty().withMessage('Name is required'),
@@ -16,10 +17,21 @@ export const validatePasswordUpdate = [
     .withMessage('Password must contain letters, numbers, and special characters'),
 ];
 
-export const validate = (req: Request, res: Response, next: NextFunction) => {
-  const errors = validationResult(req);
+// Update the validate function to return void instead of a response
+export const validate = (req: Request, res: Response, next: NextFunction): void => {
+  const errors: Result = validationResult(req);
+  
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const errorMessages = errors.array().map(err => ({
+      field: err.path,
+      message: err.msg
+    }));
+    
+    // Instead of returning a response, call next with an error
+    const validationError = new ValidationError('Validation failed', errorMessages);
+    next(validationError);
+    return;
   }
+  
   next();
 };

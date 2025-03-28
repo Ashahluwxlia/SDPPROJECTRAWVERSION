@@ -1,32 +1,8 @@
 import api from './api';
+import { Task } from '../types';  // Using the imported Task type
 
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  dueDate?: string;
-  priority: 'low' | 'medium' | 'high';
-  status: 'to-do' | 'in-progress' | 'completed';
-  tags?: string[];
-  isRecurring?: boolean;
-  recurringPattern?: 'daily' | 'weekly' | 'biweekly' | 'monthly';
-  createdBy: string;
-  assignedTo: string;
-  createdAt: string;
-  updatedAt: string;
-  comments?: {
-    id: string;
-    text: string;
-    userId: string;
-    createdAt: string;
-  }[];
-  attachments?: {
-    id: string;
-    name: string;
-    url: string;
-    createdAt: string;
-  }[];
-}
+// Remove the duplicate Task interface definition here
+// Keep all other interfaces and functions that use the imported Task type
 
 export interface Comment {
   id: string;
@@ -120,3 +96,5 @@ export const assignTask = async (taskId: string, userId: string): Promise<Task> 
   const response = await api.put(`/tasks/${taskId}/assign`, { userId });
   return response.data;
 };
+
+export type { Task } from '../types';

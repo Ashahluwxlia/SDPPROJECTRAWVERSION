@@ -8,7 +8,7 @@ import '../styles/TaskForm.css';
 type TaskFormData = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'attachments'>;
 
 const CreateTask: React.FC = () => {
-  const { createNewTask } = useTask();
+  const { createTask: createNewTask } = useTask();
   const { currentUser } = useAuth();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);

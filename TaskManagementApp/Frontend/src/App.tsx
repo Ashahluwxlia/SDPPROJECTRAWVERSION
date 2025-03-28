@@ -18,6 +18,7 @@ import ManagerDashboard from './components/ManagerDashboard';
 import NotFound from './components/NotFound';
 import Unauthorized from './components/Unauthorized';
 import './styles/App.css';
+import { useTask } from './context/TaskContext';
 
 const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,6 +35,7 @@ const App: React.FC = () => {
   const handleFilterChange = (newFilters: { status: string; priority: string; assignee: string }) => {
     setFilters(newFilters);
   };
+  const { tasks, refreshTasks } = useTask();
 
   return (
     <ErrorBoundary>
@@ -64,6 +66,8 @@ const App: React.FC = () => {
                             searchTerm={searchTerm}
                             filters={filters}
                             onFilterChange={handleFilterChange}
+                            tasks={tasks}
+                            refreshTasks={refreshTasks}
                           />
                         </div>
                       </ProtectedRoute>
@@ -71,7 +75,7 @@ const App: React.FC = () => {
 
                     <Route path="/tasks/:taskId" element={
                       <ProtectedRoute>
-                        <EditTask />
+                        <EditTask refreshTasks={refreshTasks} />
                       </ProtectedRoute>
                     } />
                     

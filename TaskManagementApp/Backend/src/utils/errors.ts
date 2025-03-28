@@ -10,9 +10,19 @@ export class AppError extends Error {
   }
 }
 
+export interface ValidationErrorItem {
+  field?: string;
+  message: string;
+}
+
 export class ValidationError extends AppError {
-  constructor(message: string, details?: any) {
-    super(400, message, details);
+  public errors: ValidationErrorItem[];
+  
+  constructor(message: string, errors: ValidationErrorItem[]) {
+    super(400, message, errors);
+    this.errors = errors;
+    // This ensures instanceof works correctly
+    Object.setPrototypeOf(this, ValidationError.prototype);
   }
 }
 
@@ -31,5 +41,14 @@ export class ForbiddenError extends AppError {
 export class NotFoundError extends AppError {
   constructor(resource: string) {
     super(404, `${resource} not found`);
+    // This ensures instanceof works correctly
+    Object.setPrototypeOf(this, NotFoundError.prototype);
+  }
+}
+
+export class UnauthorizedError extends AppError {
+  constructor(message: string = 'Unauthorized access') {
+    super(401, message);
+    Object.setPrototypeOf(this, UnauthorizedError.prototype);
   }
 }

@@ -1,11 +1,13 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { createTask, Task as ServiceTask } from '../services/taskservice';
+// Remove duplicate imports and use single source for Task type
+import React, { useState, useCallback } from 'react';
+import { createTask } from '../services/taskservice';
+import { Task, RecurringPattern } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { RecurringPattern } from '../types';
 import { useNavigate } from 'react-router-dom';
 import '../styles/TaskForm.css';
 
-interface TaskFormData extends Omit<ServiceTask, 'id' | 'createdAt' | 'updatedAt'> {
+// Update interface to use Task directly
+interface TaskFormData extends Omit<Task, 'id' | 'createdAt' | 'updatedAt'> {
   isRecurring: boolean;
   recurringPattern?: RecurringPattern;
 }
@@ -80,6 +82,8 @@ const TaskForm: React.FC = () => {
         tags: formData.tags || [],
         comments: [], // Initialize with empty array matching the service type
         attachments: [] // Initialize with empty array matching the service type
+        ,
+        isRecurring: false
       });
       
       setFormData(initialFormData);

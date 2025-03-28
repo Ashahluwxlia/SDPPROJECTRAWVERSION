@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Task, updateTask, deleteTask } from '../services/taskservice';
-import { useAuth } from '../context/AuthContext'; // Updated from '../hooks/useAuth'
+import { updateTask, deleteTask } from '../services/taskservice';
+import { useAuth } from '../context/AuthContext';
 import '../styles/TaskList.css';
 import { FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import { Task } from '../types';
 
 interface TaskFilters {
   status: string;
@@ -14,15 +15,15 @@ interface TaskFilters {
 }
 
 interface TaskListProps {
-  tasks: Task[];
-  refreshTasks: () => Promise<void>;
   searchTerm: string;
   filters: {
     status: string;
     priority: string;
     assignee: string;
   };
-  onFilterChange: (filters: { status: string; priority: string; assignee: string }) => void;
+  onFilterChange: (newFilters: { status: string; priority: string; assignee: string }) => void;
+  tasks: Task[]; // Add this
+  refreshTasks: () => Promise<void>; // Add this
 }
 
 const TaskList: React.FC<TaskListProps> = ({ tasks, refreshTasks, onFilterChange }) => {

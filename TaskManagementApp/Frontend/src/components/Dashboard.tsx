@@ -29,9 +29,38 @@ const Dashboard: React.FC<DashboardProps> = ({ searchTerm, filters }) => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Remove the duplicate userName declaration and fix type assertion
   const displayName = currentUser && ((currentUser as unknown as User).name || currentUser.email.split('@')[0]);
 
+  // Filter tasks based on searchTerm and filters
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      // Search term filter
+      if (searchTerm && 
+          !task.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          !task.description?.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+
+      // Status filter
+      if (filters.status !== 'all' && task.status !== filters.status) {
+        return false;
+      }
+
+      // Priority filter
+      if (filters.priority !== 'all' && task.priority !== filters.priority) {
+        return false;
+      }
+
+      // Assignee filter
+      if (filters.assignee !== 'all' && task.assignedTo !== filters.assignee) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [tasks, searchTerm, filters]);
+
+  // Update all task calculations to use filteredTasks instead of tasks
   const [stats, setStats] = useState<DashboardStats>({
     total: 0,
     completed: 0,
@@ -40,19 +69,19 @@ const Dashboard: React.FC<DashboardProps> = ({ searchTerm, filters }) => {
   });
 
   const calculateStats = useMemo(() => {
-    if (!tasks.length) return stats;
+    if (!filteredTasks.length) return stats;
 
     const now = new Date();
     return {
-      total: tasks.length,
-      completed: tasks.filter(task => task.status === 'completed').length,
-      inProgress: tasks.filter(task => task.status === 'in-progress').length,
-      overdue: tasks.filter(task => {
+      total: filteredTasks.length,
+      completed: filteredTasks.filter(task => task.status === 'completed').length,
+      inProgress: filteredTasks.filter(task => task.status === 'in-progress').length,
+      overdue: filteredTasks.filter(task => {
         if (!task.dueDate || task.status === 'completed') return false;
         return new Date(task.dueDate) < now;
       }).length
     };
-  }, [tasks]);
+  }, [filteredTasks]);
 
   useEffect(() => {
     setStats(calculateStats);

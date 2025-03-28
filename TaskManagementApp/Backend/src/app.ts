@@ -1,8 +1,6 @@
-import cors from 'cors';
-import express from 'express';
+import { AppDataSource } from './data-source';
 
-const app = express();
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
-}));
+// Initialize the data source
+AppDataSource.initialize()
+  .then(() => console.log('Database connected'))
+  .catch(error => console.error('Database connection error:', error));

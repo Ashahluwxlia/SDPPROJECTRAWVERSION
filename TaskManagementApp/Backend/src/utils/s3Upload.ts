@@ -7,7 +7,7 @@ const s3 = new AWS.S3({
   region: process.env.AWS_REGION,
 });
 
-export const uploadToS3 = async (file: Express.Multer.File): Promise<string> => {
+export const uploadToS3 = async (file: any): Promise<string> => {
   const fileExtension = file.originalname.split('.').pop();
   const fileName = `${uuidv4()}.${fileExtension}`;
 
