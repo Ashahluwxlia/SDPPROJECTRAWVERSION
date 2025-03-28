@@ -1,54 +1,70 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { DataTypes, Model } from 'sequelize';
+import sequelize from '../config/database';
+import User from './User';
 
-@Entity('tasks')
-export class Task {
-  @PrimaryGeneratedColumn('increment')
-  id!: number;
-
-  @Column({ type: 'varchar', length: 255 })
-  title!: string;
-
-  @Column({ type: 'text', nullable: true })
-  description?: string;
-
-  @Column({ type: 'datetime' })
-  dueDate!: Date;
-
-  @Column({ 
-    type: 'varchar',
-    length: 50,
-    default: 'medium' 
-  })
-  priority!: string;
-
-  @Column({ 
-    type: 'varchar',
-    length: 50,
-    default: 'to-do' 
-  })
-  status!: string;
-
-  @Column({ type: 'simple-array', nullable: true })
-  tags?: string[];
-
-  @Column({ type: 'boolean', default: false })
-  isRecurring!: boolean;
-
-  @Column({ type: 'simple-json', nullable: true })
-  recurringPattern?: {
-    frequency: string;
-    interval: number;
-  };
-
-  @Column({ type: 'varchar', length: 255 })
-  createdBy!: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  assignedTo?: string;
-
-  @CreateDateColumn({ type: 'datetime' })
-  createdAt!: Date;
-
-  @UpdateDateColumn({ type: 'datetime' })
-  updatedAt!: Date;
+class Task extends Model {
+  public id!: string;
+  public title!: string;
+  public description!: string;
+  public status!: 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
+  public priority!: 'LOW' | 'MEDIUM' | 'HIGH';
+  public assignedToId!: number;
+  public createdAt!: Date;
+  public updatedAt!: Date;
+  public dueDate?: Date;
 }
+
+Task.init({
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'TODO',
+    validate: {
+      isIn: [['TODO', 'IN_PROGRESS', 'COMPLETED']]
+    }
+  },
+  priority: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'MEDIUM',
+    validate: {
+      isIn: [['LOW', 'MEDIUM', 'HIGH']]
+    }
+  },
+  assignedToId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: User,
+      key: 'id',
+    }
+  },
+  dueDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  }
+}, {
+  sequelize,
+  modelName: 'Task',
+  timestamps: true,
+});
+
+// Define the relationship
+Task.belongsTo(User, {
+  foreignKey: 'assignedToId',
+  as: 'assignedTo'
+});
+
+export default Task;

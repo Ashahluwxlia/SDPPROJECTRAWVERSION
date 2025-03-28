@@ -133,9 +133,8 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, refreshTasks, onFilterChange
       
       // Assignee filter
       if (filters.assignee !== 'all') {
-        if (filters.assignee === currentUser?.id && task.assignedTo !== currentUser?.id) {
-          return false;
-        } else if (filters.assignee === '' && task.assignedTo) {
+        // Update filter comparison to use string values
+        if (filters.assignee === String(currentUser?.id) && task.assignedTo !== currentUser?.id) {
           return false;
         }
       }

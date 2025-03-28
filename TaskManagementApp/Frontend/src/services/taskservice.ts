@@ -40,11 +40,17 @@ export const getTaskById = async (taskId: string): Promise<Task> => {
 
 export const createTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> => {
     try {
-        const response = await api.post('/tasks', {
+        // Normalize data to match backend expectations
+        const normalizedData = {
             ...taskData,
-            createdBy: String(taskData.createdBy),  // Ensure createdBy is a string
-            assignedTo: String(taskData.assignedTo)  // Ensure assignedTo is a string
-        });
+            createdBy: String(taskData.createdBy),
+            assignedTo: String(taskData.assignedTo),
+            // Ensure tags is an array or convert from string if needed
+            tags: Array.isArray(taskData.tags) ? taskData.tags : 
+                  (typeof taskData.tags === 'string' ? [taskData.tags] : [])
+        };
+        
+        const response = await api.post('/tasks', normalizedData);
         return response.data;
     } catch (error) {
         console.error('Error creating task:', error);

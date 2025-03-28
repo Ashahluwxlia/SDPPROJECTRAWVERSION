@@ -50,7 +50,7 @@ const TaskForm: React.FC = () => {
       setError('Title is required');
       return false;
     }
-    if (!formData.assignedTo.trim()) {
+    if (!String(formData.assignedTo || '').trim()) {
       setError('Assignee is required');
       return false;
     }

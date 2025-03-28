@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updatePassword = async (currentPassword: string, newPassword: string) => {
     try {
       setLoading(true);
-      await changePassword(currentUser?.id || '', currentPassword, newPassword);
+      await changePassword(currentPassword, newPassword);
     } catch (err) {
       console.error('Update password error:', err);
       setError('Failed to update password');

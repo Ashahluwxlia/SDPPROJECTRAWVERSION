@@ -1,12 +1,10 @@
 import { Sequelize } from 'sequelize';
 import path from 'path';
 
-const dbPath = path.resolve(__dirname, '../../database.sqlite');
-
 const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: dbPath,
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  storage: path.join(__dirname, '../../database.sqlite'),
+  logging: false
 });
 
 export default sequelize;

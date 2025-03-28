@@ -72,7 +72,8 @@ const EditTask: React.FC<EditTaskProps> = ({ refreshTasks }) => {
         status: (taskData.status as 'to-do' | 'in-progress' | 'completed') || FORM_DEFAULTS.status,
         tags: taskData.tags ? taskData.tags.join(', ') : '',
         recurringPattern: (taskData.recurringPattern as 'daily' | 'weekly' | 'monthly' | 'biweekly') || FORM_DEFAULTS.recurringPattern,
-        assignedTo: taskData.assignedTo || FORM_DEFAULTS.assignedTo,
+        assignedTo: String(taskData.assignedTo || FORM_DEFAULTS.assignedTo),
+        // Ensure assignedTo is converted to a string
       });
     } catch (err) {
       console.error('Error fetching task:', err);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { TaskProvider } from './context/TaskContext'; 
@@ -17,6 +17,7 @@ import AdminPanel from './components/AdminPanel';
 import ManagerDashboard from './components/ManagerDashboard';
 import NotFound from './components/NotFound';
 import Unauthorized from './components/Unauthorized';
+// Import only one App.css file to avoid conflicts
 import './styles/App.css';
 import { useTask } from './context/TaskContext';
 

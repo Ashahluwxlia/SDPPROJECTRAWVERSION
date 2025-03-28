@@ -1,14 +1,20 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/errors';
-import { ValidationError as SequelizeValidationError } from 'sequelize';
+import { ValidationError as SequelizeValidationError, UniqueConstraintError } from 'sequelize';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+
+interface ErrorResponse {
+  error: string;
+  details?: any;
+  stack?: string;
+}
 
 export const errorHandler = (
   err: any,
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Response<ErrorResponse> => {
   console.error('Error:', {
     name: err.name,
     message: err.message,
@@ -25,7 +31,7 @@ export const errorHandler = (
     });
   }
 
-  // Handle Sequelize errors
+  // Handle Sequelize validation errors
   if (err instanceof SequelizeValidationError) {
     return res.status(400).json({
       error: 'Validation Error',
@@ -59,7 +65,7 @@ export const errorHandler = (
   }
 
   // Handle unique constraint violations
-  if (err.name === 'SequelizeUniqueConstraintError') {
+  if (err instanceof UniqueConstraintError) {
     return res.status(409).json({
       error: 'Resource already exists',
       details: Object.keys(err.fields).map(field => ({
@@ -70,7 +76,7 @@ export const errorHandler = (
   }
 
   // Default error
-  res.status(500).json({
+  return res.status(500).json({
     error: 'Internal Server Error',
     ...(process.env.NODE_ENV === 'development' && {
       details: err.message,

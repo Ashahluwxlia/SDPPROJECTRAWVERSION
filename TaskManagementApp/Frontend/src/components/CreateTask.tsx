@@ -66,26 +66,13 @@ const CreateTask: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    if (!currentUser?.id) {
-      setError('User not authenticated');
-      return;
-    }
-
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      const taskData = {
+      await createNewTask({
         ...formData,
-        tags: typeof formData.tags === 'string' 
-          ? (formData.tags as string).split(',').map(tag => tag.trim())
-          : formData.tags,
-        isRecurring,
-        createdBy: currentUser.id,
-        assignedTo: formData.assignedTo || currentUser.id,
-      };
-
-      await createNewTask(taskData);
+        createdBy: currentUser?.id || '',
+        assignedTo: formData.assignedTo || currentUser?.id || ''
+      });
       resetForm();
     } catch (err) {
       console.error('Error creating task:', err);
@@ -94,6 +81,8 @@ const CreateTask: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Remove the misplaced resetForm() and catch block here
 
   return (
     <div className="create-task-container">
