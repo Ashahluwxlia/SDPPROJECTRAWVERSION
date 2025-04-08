@@ -1,0 +1,231 @@
+ generator client {
+ provider = "prisma-client-js"
+}
+
+datasource db {
+ provider = "postgresql"
+ url = env("DATABASE_URL")
+}
+
+model User {
+ id String @id @default(uuid())
+ name String
+ email String @unique
+ password String
+ avatar String?
+ role String @default("member")
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ sessions Session[]
+ preferences UserPreferences?
+ preferencesId String? @unique
+ comments Comment[]
+ activityLogs ActivityLog[]
+ teamMembers TeamMember[]
+ teamsOwned Team[] @relation("TeamOwner")
+ invitationsSent Invitation[] @relation("Sender")
+ invitationsReceived Invitation[] @relation("Recipient")
+ attachments Attachment[]
+ ownedBoards Board[] @relation("BoardOwner")
+ memberOfBoards Board[] @relation("BoardMembers")
+ assignedTasks Task[] @relation("TaskAssignee")
+ taskHistory TaskHistoryEntry[] @relation("TaskHistoryUser")
+ notifications Notification[]
+}
+
+model Session {
+ id String @id @default(uuid())
+ userId String
+ user User @relation(fields: [userId], references: [id])
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+}
+
+model Board {
+ id String @id @default(uuid())
+ name String
+ description String?
+ background String?
+ isStarred Boolean @default(false)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ owner User @relation("BoardOwner", fields: [ownerId], references: [id])
+ ownerId String
+ members User[] @relation("BoardMembers")
+ lists List[]
+ team Team? @relation(fields: [teamId], references: [id])
+ teamId String?
+ activityLogs ActivityLog[]
+ invitations Invitation[]
+}
+
+model List {
+ id String @id @default(uuid())
+ name String
+ board Board @relation(fields: [boardId], references: [id])
+ boardId String
+ position Int
+ tasks Task[]
+}
+
+model Task {
+ id String @id @default(uuid())
+ title String
+ description String?
+ list List @relation(fields: [listId], references: [id])
+ listId String
+ position Int
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ dueDate DateTime?
+ priority String?
+ status String?
+ assignee User? @relation("TaskAssignee", fields: [assigneeId], references: [id])
+ assigneeId String?
+ labels Label[]
+ attachments Attachment[]
+ comments Comment[]
+ activityLogs ActivityLog[]
+ isPinned Boolean @default(false)
+ isRecurring Boolean @default(false)
+ recurringPattern String?
+ history TaskHistoryEntry[]
+ reminderDate DateTime?
+ completedAt DateTime?
+ completedBy String?
+ category String?
+ tags Tag[]
+}
+
+model Comment {
+ id String @id @default(uuid())
+ text String
+ createdAt DateTime @default(now())
+ user User @relation(fields: [userId], references: [id])
+ userId String
+ task Task @relation(fields: [taskId], references: [id])
+ taskId String
+ mentions String?
+}
+
+model Attachment {
+ id String @id @default(uuid())
+ name String
+ url String
+ type String
+ size String?
+ uploadedAt DateTime @default(now())
+ uploadedBy User @relation(fields: [uploadedById], references: [id])
+ uploadedById String
+ task Task @relation(fields: [taskId], references: [id])
+ taskId String
+}
+
+model TaskHistoryEntry {
+ id String @id @default(uuid())
+ createdAt DateTime @default(now())
+ action String
+ details String?
+ taskId String
+ userId String
+ task Task @relation(fields: [taskId], references: [id])
+ user User @relation("TaskHistoryUser", fields: [userId], references: [id])
+}
+
+model ActivityLog {
+ id String @id @default(uuid())
+ action String
+ details String
+ entityType String
+ entityId String
+ createdAt DateTime @default(now())
+ user User @relation(fields: [userId], references: [id])
+ userId String
+ board Board? @relation(fields: [boardId], references: [id])
+ boardId String?
+ task Task? @relation(fields: [taskId], references: [id])
+ taskId String?
+}
+
+model Team {
+ id String @id @default(uuid())
+ name String
+ description String?
+ createdAt DateTime @default(now())
+ owner User @relation("TeamOwner", fields: [ownerId], references: [id])
+ ownerId String
+ members TeamMember[]
+ boards Board[]
+ invitations Invitation[]
+}
+
+model TeamMember {
+ id String @id @default(uuid())
+ user User @relation(fields: [userId], references: [id])
+ userId String
+ team Team @relation(fields: [teamId], references: [id])
+ teamId String
+ role String @default("member")
+ joinedAt DateTime @default(now())
+}
+
+model Invitation {
+ id String @id @default(uuid())
+ email String
+ token String @unique
+ type String
+ expiresAt DateTime
+ status String @default("pending")
+ sender User @relation("Sender", fields: [senderId], references: [id])
+ senderId String
+ recipient User? @relation("Recipient", fields: [recipientId], references: [id])
+ recipientId String?
+ boardId String?
+ board Board? @relation(fields: [boardId], references: [id])
+ teamId String?
+ team Team? @relation(fields: [teamId], references: [id])
+}
+
+model UserPreferences {
+ id String @id @default(uuid())
+ user User @relation(fields: [userId], references: [id])
+ userId String @unique
+ theme String @default("light")
+ language String @default("en")
+ notifications Boolean @default(true)
+}
+
+model Label {
+ id String @id @default(uuid())
+ name String
+ color String
+ tasks Task[]
+}
+
+model Tag {
+ id String @id @default(uuid())
+ name String
+ color String
+ tasks Task[]
+}
+
+enum NotificationType {
+  comment
+  assignment
+  mention
+  due_date
+  status_change
+}
+
+model Notification {
+ id String @id @default(uuid())
+ userId String
+ type NotificationType
+ title String
+ message String
+ taskId String?
+ boardId String?
+ createdAt DateTime @default(now())
+ isRead Boolean @default(false)
+ user User @relation(fields: [userId], references: [id])
+}
